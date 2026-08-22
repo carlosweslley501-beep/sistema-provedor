@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard - Sistema Provedor</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <aside class="menu">
+
+            <h2>🌐 Provedor</h2>
+
+            <nav>
+                <a href="#">📊 Dashboard</a>
+                <a href="#">👥 Clientes</a>
+                <a href="#">📡 Planos</a>
+                <a href="#">💰 Pagamentos</a>
+                <a href="#">📋 Histórico</a>
+                <a href="#">📈 Relatórios</a>
+                <a href="#">⚙️ Configurações</a>
+            </nav>
+
+            <button onclick="sair()">Sair</button>
+
+        </aside>
+
+
+        <main class="conteudo">
+
+            <header>
+                <div>
+                    <h1>Dashboard</h1>
+                    <p>Bem-vindo, administrador.</p>
+                </div>
+
+                <div class="perfil">
+                    👤 ADM
+                </div>
+            </header>
+
+
+            <section class="cards">
+
+                <div class="card">
+                    <span>👥</span>
+                    <h3>Total de Clientes</h3>
+                    <strong>700</strong>
+                </div>
+
+                <div class="card">
+                    <span>🟢</span>
+                    <h3>Clientes Ativos</h3>
+                    <strong>231</strong>
+                </div>
+
+                <div class="card">
+                    <span>🔴</span>
+                    <h3>Inadimplentes</h3>
+                    <strong>17</strong>
+                </div>
+
+                <div class="card">
+                    <span>💰</span>
+                    <h3>Faturamento do Mês</h3>
+                    <strong>R$ 32.450</strong>
+                </div>
+
+            </section>
+
+
+            <section class="painel">
+
+                <div class="grafico">
+                    <h2>Faturamento mensal</h2>
+
+                    <div class="barras">
+
+                        <div>
+                            <span>Jan</span>
+                            <i style="height: 45%;"></i>
+                        </div>
+
+                        <div>
+                            <span>Fev</span>
+                            <i style="height: 60%;"></i>
+                        </div>
+
+                        <div>
+                            <span>Mar</span>
+                            <i style="height: 50%;"></i>
+                        </div>
+
+                        <div>
+                            <span>Abr</span>
+                            <i style="height: 70%;"></i>
+                        </div>
+
+                        <div>
+                            <span>Mai</span>
+                            <i style="height: 65%;"></i>
+                        </div>
+
+                        <div>
+                            <span>Jun</span>
+                            <i style="height: 85%;"></i>
+                        </div>
+
+                        <div>
+                            <span>Jul</span>
+                            <i style="height: 75%;"></i>
+                        </div>
+
+                        <div>
+                            <span>Ago</span>
+                            <i style="height: 95%;"></i>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div class="resumo">
+                    <h2>Situação dos pagamentos</h2>
+
+                    <div class="status">
+                        <p>🟢 Pagos <strong>218</strong></p>
+                        <p>🟡 Pendentes <strong>13</strong></p>
+                        <p>🔴 Atrasados <strong>17</strong></p>
+                    </div>
+                </div>
+
+            </section>
+
+
+            <section class="historico">
+
+                <h2>Histórico de pagamentos</h2>
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Data</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>João Silva</td>
+                            <td>05/08/2026</td>
+                            <td>R$ 99,90</td>
+                            <td class="pago">Pago</td>
+                        </tr>
+
+                        <tr>
+                            <td>Maria Santos</td>
+                            <td>07/08/2026</td>
+                            <td>R$ 119,90</td>
+                            <td class="pago">Pago</td>
+                        </tr>
+
+                        <tr>
+                            <td>Pedro Oliveira</td>
+                            <td>10/08/2026</td>
+                            <td>R$ 89,90</td>
+                            <td class="pendente">Pendente</td>
+                        </tr>
+
+                        <tr>
+                            <td>Ana Costa</td>
+                            <td>12/08/2026</td>
+                            <td>R$ 149,90</td>
+                            <td class="pago">Pago</td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <script>
+        function sair() {
+            window.location.href = "index.html";
+        }
+    </script>
+
+</body>
+</html>

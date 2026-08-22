@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Conta - Sistema Provedor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <aside class="menu">
+            <h2>🌐 Provedor</h2>
+            <nav>
+                <a href="#">📋 Meu Histórico</a>
+            </nav>
+            <button onclick="sair()">Sair</button>
+        </aside>
+
+        <main class="conteudo">
+
+            <header>
+                <div>
+                    <h1>Minha Conta</h1>
+                    <p id="boasVindas">Bem-vindo!</p>
+                </div>
+                <div class="perfil" id="perfilNome">👤</div>
+            </header>
+
+            <section class="historico">
+                <h2>Histórico de Pagamentos</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mês</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaFaturas">
+                    </tbody>
+                </table>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        const dados = JSON.parse(localStorage.getItem("clienteLogado"));
+
+        if (!dados) {
+            window.location.href = "index.html";
+        } else {
+            document.getElementById("boasVindas").textContent = "Bem-vindo, " + dados.nome + ".";
+            document.getElementById("perfilNome").textContent = "👤 " + dados.nome;
+
+            const tabela = document.getElementById("tabelaFaturas");
+            dados.faturas.forEach(function(f) {
+                const statusTexto = { pago: "Pago", pendente: "Pendente", atrasado: "Atrasado" }[f.status];
+                const statusClasse = f.status;
+                const dataExibida = f.dataPagamento || f.vencimento;
+
+                tabela.innerHTML += "<tr><td>" + f.mes + "</td><td>R$ " +
+                    f.valor.toFixed(2).replace(".", ",") + "</td><td class=\"" + statusClasse +
+                    "\">" + statusTexto + "</td><td>" + dataExibida + "</td></tr>";
+            });
+        }
+
+        function sair() {
+            localStorage.removeItem("clienteLogado");
+            window.location.href = "index.html";
+        }
+    </script>
+
+</body>
+</html>

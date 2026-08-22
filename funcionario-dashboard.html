@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Funcionário - Sistema Provedor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="dashboard">
+
+        <aside class="menu">
+            <h2>🌐 Provedor</h2>
+            <nav>
+                <a href="#">📊 Dashboard</a>
+                <a href="#">👥 Clientes</a>
+                <a href="#">📡 Planos</a>
+                <a href="#">💰 Pagamentos</a>
+                <a href="#">📋 Histórico</a>
+            </nav>
+            <button onclick="sair()">Sair</button>
+        </aside>
+
+        <main class="conteudo">
+            <header>
+                <div>
+                    <h1>Painel do Funcionário</h1>
+                    <p id="boasVindas">Bem-vindo!</p>
+                </div>
+                <div class="perfil" id="perfilNome">👤</div>
+            </header>
+
+            <section class="cards">
+                <div class="card">
+                    <span>👥</span>
+                    <h3>Total de Clientes</h3>
+                    <strong>248</strong>
+                </div>
+
+                <div class="card">
+                    <span>🟢</span>
+                    <h3>Clientes Ativos</h3>
+                    <strong>231</strong>
+                </div>
+
+                <div class="card">
+                    <span>🔴</span>
+                    <h3>Inadimplentes</h3>
+                    <strong>17</strong>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        const dados = JSON.parse(localStorage.getItem("funcionarioLogado"));
+
+        if (!dados) {
+            window.location.href = "index.html";
+        } else {
+            document.getElementById("boasVindas").textContent = "Bem-vindo, " + dados.nome + ".";
+            document.getElementById("perfilNome").textContent = "👤 " + dados.nome;
+        }
+
+        function sair() {
+            localStorage.removeItem("funcionarioLogado");
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>
