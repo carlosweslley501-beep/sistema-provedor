@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Plano - Sistema Provedor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h1>Cadastrar Plano</h1>
+            <p>Preencha os dados do novo plano</p>
+
+            <div class="campo">
+                <label for="nomePlano">Nome do plano</label>
+                <input type="text" id="nomePlano" placeholder="Ex: Fibra 200MB">
+            </div>
+
+            <div class="campo">
+                <label for="velocidade">Velocidade</label>
+                <input type="text" id="velocidade" placeholder="Ex: 200 Mbps">
+            </div>
+
+            <div class="campo">
+                <label for="valorPlano">Valor mensal</label>
+                <input type="number" id="valorPlano" placeholder="Ex: 99.90" step="0.01">
+            </div>
+
+            <button onclick="cadastrarPlano()">Cadastrar</button>
+            <p id="mensagem"></p>
+            <p style="text-align:center; margin-top:15px;">
+                <a href="dashboard.html" style="color:#38bdf8;">Voltar ao painel</a>
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+        window.cadastrarPlano = async function () {
+            const nome = document.getElementById("nomePlano").value.trim();
+            const velocidade = document.getElementById("velocidade").value.trim();
+            const valor = parseFloat(document.getElementById("valorPlano").value);
+            const mensagem = document.getElementById("mensagem");
+
+            if (!nome || !velocidade || isNaN(valor)) {
+                mensagem.style.color = "red";
+                mensagem.textContent = "Preencha todos os campos corretamente.";
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "planos"), {
+                    nome: nome,
+                    velocidade: velocidade,
+                    valorMensal: valor,
+                    criadoEm: new Date().toISOString()
+                });
+
+                mensagem.style.color = "lightgreen";
+                mensagem.textContent = "Plano cadastrado com sucesso!";
+
+                document.getElementById("nomePlano").value = "";
+                document.getElementById("velocidade").value = "";
+                document.getElementById("valorPlano").value = "";
+            } catch (erro) {
+                mensagem.style.color = "red";
+                mensagem.textContent = "Erro ao cadastrar: " + erro.message;
+            }
+        };
+    </script>
+</body>
+</html>

@@ -48,7 +48,10 @@
         </main>
     </div>
 
-    <script>
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
         const dados = JSON.parse(localStorage.getItem("clienteLogado"));
 
         if (!dados) {
@@ -57,16 +60,38 @@
             document.getElementById("boasVindas").textContent = "Bem-vindo, " + dados.nome + ".";
             document.getElementById("perfilNome").textContent = "👤 " + dados.nome;
 
-            const tabela = document.getElementById("tabelaFaturas");
-            dados.faturas.forEach(function(f) {
-                const statusTexto = { pago: "Pago", pendente: "Pendente", atrasado: "Atrasado" }[f.status];
-                const statusClasse = f.status;
-                const dataExibida = f.dataPagamento || f.vencimento;
+            carregarFaturas(dados.id);
+        }
 
-                tabela.innerHTML += "<tr><td>" + f.mes + "</td><td>R$ " +
-                    f.valor.toFixed(2).replace(".", ",") + "</td><td class=\"" + statusClasse +
-                    "\">" + statusTexto + "</td><td>" + dataExibida + "</td></tr>";
+        async function carregarFaturas(clienteId) {
+            const faturasRef = collection(db, "faturas");
+            const q = query(faturasRef, where("clienteId", "==", clienteId));
+            const resultado = await getDocs(q);
+
+            const tabela = document.getElementById("tabelaFaturas");
+            tabela.innerHTML = "";
+
+            const statusTexto = { pago: "Pago", pendente: "Pendente", atrasado: "Atrasado" };
+
+            const faturas = [];
+            resultado.forEach((doc) => faturas.push(doc.data()));
+            faturas.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            faturas.forEach((f) => {
+                const dataFormatada = new Date(f.data + "T00:00:00").toLocaleDateString("pt-BR");
+                tabela.innerHTML += `
+                    <tr>
+                        <td>${f.mes}</td>
+                        <td>R$ ${f.valor.toFixed(2).replace(".", ",")}</td>
+                        <td class="${f.status}">${statusTexto[f.status]}</td>
+                        <td>${dataFormatada}</td>
+                    </tr>
+                `;
             });
+
+            if (faturas.length === 0) {
+                tabela.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#94a3b8;'>Nenhuma fatura encontrada.</td></tr>";
+            }
         }
 
         function sair() {

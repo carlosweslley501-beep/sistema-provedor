@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status de Rede - Sistema Provedor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="dashboard">
+
+        <aside class="menu">
+            <h2>🌐 Provedor</h2>
+            <nav>
+                <a href="dashboard.html">📊 Dashboard</a>
+                <a href="cadastro-cliente.html">👥 Cadastrar Cliente</a>
+                <a href="cadastro-plano.html">📡 Planos</a>
+                <a href="status-rede.html">📶 Status de Rede</a>
+            </nav>
+            <button onclick="window.location.href='dashboard.html'">Voltar</button>
+        </aside>
+
+        <main class="conteudo">
+            <header>
+                <div>
+                    <h1>Status de Rede</h1>
+                    <p>Monitoramento de conexão dos clientes (simulado)</p>
+                </div>
+            </header>
+
+            <section class="cards">
+                <div class="card">
+                    <span>🟢</span>
+                    <h3>Online</h3>
+                    <strong id="totalOnline">-</strong>
+                </div>
+
+                <div class="card">
+                    <span>🔴</span>
+                    <h3>Sem internet</h3>
+                    <strong id="totalOffline">-</strong>
+                </div>
+            </section>
+
+            <section class="historico">
+                <h2>Clientes sem internet</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>CPF</th>
+                            <th>Plano</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaOffline">
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+        async function carregarStatus() {
+            const clientesRef = collection(db, "clientes");
+            const resultado = await getDocs(clientesRef);
+
+            let online = 0;
+            let offline = 0;
+            const tabela = document.getElementById("tabelaOffline");
+            tabela.innerHTML = "";
+
+            resultado.forEach((doc) => {
+                const cliente = doc.data();
+                const estaOnline = Math.random() > 0.3; // simulação: 70% chance de estar online
+
+                if (estaOnline) {
+                    online++;
+                } else {
+                    offline++;
+                    tabela.innerHTML += `
+                        <tr>
+                            <td>${cliente.nome}</td>
+                            <td>${cliente.cpf}</td>
+                            <td>${cliente.plano || "-"}</td>
+                            <td class="atrasado">🔴 Sem internet</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            document.getElementById("totalOnline").textContent = online;
+            document.getElementById("totalOffline").textContent = offline;
+
+            if (offline === 0) {
+                tabela.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#94a3b8;'>Todos os clientes estão online 🎉</td></tr>";
+            }
+        }
+
+        carregarStatus();
+    </script>
+</body>
+</html>

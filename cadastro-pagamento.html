@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lançar Pagamento - Sistema Provedor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h1>Lançar Pagamento</h1>
+            <p>Registre a fatura de um cliente</p>
+
+            <div class="campo">
+                <label for="cliente">Cliente</label>
+                <select id="cliente" style="width:100%; padding:14px; border-radius:10px; background:#0f172a; color:white; border:1px solid #475569;">
+                    <option value="">Carregando clientes...</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="mes">Mês de referência</label>
+                <input type="month" id="mes">
+            </div>
+
+            <div class="campo">
+                <label for="valorFatura">Valor</label>
+                <input type="number" id="valorFatura" placeholder="Ex: 99.90" step="0.01">
+            </div>
+
+            <div class="campo">
+                <label for="statusFatura">Status</label>
+                <select id="statusFatura" style="width:100%; padding:14px; border-radius:10px; background:#0f172a; color:white; border:1px solid #475569;">
+                    <option value="pago">Pago</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="atrasado">Atrasado</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="dataFatura">Data</label>
+                <input type="date" id="dataFatura">
+            </div>
+
+            <button onclick="lancarPagamento()">Salvar</button>
+            <p id="mensagem"></p>
+            <p style="text-align:center; margin-top:15px;">
+                <a href="dashboard.html" style="color:#38bdf8;">Voltar ao painel</a>
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+        const selectCliente = document.getElementById("cliente");
+
+        async function carregarClientes() {
+            const resultado = await getDocs(collection(db, "clientes"));
+            selectCliente.innerHTML = "";
+            resultado.forEach((doc) => {
+                const cliente = doc.data();
+                const opcao = document.createElement("option");
+                opcao.value = doc.id;
+                opcao.textContent = cliente.nome + " (" + cliente.cpf + ")";
+                opcao.dataset.nome = cliente.nome;
+                selectCliente.appendChild(opcao);
+            });
+        }
+        carregarClientes();
+
+        window.lancarPagamento = async function () {
+            const clienteId = selectCliente.value;
+            const clienteNome = selectCliente.options[selectCliente.selectedIndex]?.dataset.nome;
+            const mes = document.getElementById("mes").value;
+            const valor = parseFloat(document.getElementById("valorFatura").value);
+            const status = document.getElementById("statusFatura").value;
+            const data = document.getElementById("dataFatura").value;
+            const mensagem = document.getElementById("mensagem");
+
+            if (!clienteId || !mes || isNaN(valor) || !data) {
+                mensagem.style.color = "red";
+                mensagem.textContent = "Preencha todos os campos.";
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "faturas"), {
+                    clienteId: clienteId,
+                    clienteNome: clienteNome,
+                    mes: mes,
+                    valor: valor,
+                    status: status,
+                    data: data,
+                    criadoEm: new Date().toISOString()
+                });
+
+                mensagem.style.color = "lightgreen";
+                mensagem.textContent = "Pagamento lançado com sucesso!";
+            } catch (erro) {
+                mensagem.style.color = "red";
+                mensagem.textContent = "Erro: " + erro.message;
+            }
+        };
+    </script>
+</body>
+</html>

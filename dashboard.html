@@ -20,11 +20,12 @@
             <nav>
                 <a href="#">📊 Dashboard</a>
                 <a href="cadastro-cliente.html">👥 Cadastrar Cliente</a>
-                <a href="#">📡 Planos</a>
-                <a href="#">💰 Pagamentos</a>
-                <a href="#">📋 Histórico</a>
-                <a href="#">📈 Relatórios</a>
-                <a href="#">⚙️ Configurações</a>
+                <a href="cadastro-plano.html">📡 Planos</a>
+                <a href="status-rede.html">📶 Status de Rede</a>
+                <a href="cadastro-pagamento.html">💰 Pagamentos</a>
+                <a href="historico.html">📋 Histórico</a>
+                <a href="relatorios.html">📈 Relatórios</a>
+                <a href="configuracoes.html">⚙️ Configurações</a>
             </nav>
 
             <button onclick="sair()">Sair</button>
@@ -51,25 +52,25 @@
                 <div class="card">
                     <span>👥</span>
                     <h3>Total de Clientes</h3>
-                    <strong>700</strong>
+                    <strong id="totalClientes">248</strong>
                 </div>
 
                 <div class="card">
                     <span>🟢</span>
                     <h3>Clientes Ativos</h3>
-                    <strong>231</strong>
+                    <strong id="clientesAtivos">231</strong>
                 </div>
 
                 <div class="card">
                     <span>🔴</span>
                     <h3>Inadimplentes</h3>
-                    <strong>17</strong>
+                    <strong id="totalInadimplentes">17</strong>
                 </div>
 
                 <div class="card">
                     <span>💰</span>
                     <h3>Faturamento do Mês</h3>
-                    <strong>R$ 32.450</strong>
+                    <strong id="faturamentoMes">-</strong>
                 </div>
 
             </section>
@@ -79,50 +80,7 @@
 
                 <div class="grafico">
                     <h2>Faturamento mensal</h2>
-
-                    <div class="barras">
-
-                        <div>
-                            <span>Jan</span>
-                            <i style="height: 45%;"></i>
-                        </div>
-
-                        <div>
-                            <span>Fev</span>
-                            <i style="height: 60%;"></i>
-                        </div>
-
-                        <div>
-                            <span>Mar</span>
-                            <i style="height: 50%;"></i>
-                        </div>
-
-                        <div>
-                            <span>Abr</span>
-                            <i style="height: 70%;"></i>
-                        </div>
-
-                        <div>
-                            <span>Mai</span>
-                            <i style="height: 65%;"></i>
-                        </div>
-
-                        <div>
-                            <span>Jun</span>
-                            <i style="height: 85%;"></i>
-                        </div>
-
-                        <div>
-                            <span>Jul</span>
-                            <i style="height: 75%;"></i>
-                        </div>
-
-                        <div>
-                            <span>Ago</span>
-                            <i style="height: 95%;"></i>
-                        </div>
-
-                    </div>
+                    <div class="barras" id="graficoFaturamento"></div>
                 </div>
 
 
@@ -130,9 +88,9 @@
                     <h2>Situação dos pagamentos</h2>
 
                     <div class="status">
-                        <p>🟢 Pagos <strong>218</strong></p>
-                        <p>🟡 Pendentes <strong>13</strong></p>
-                        <p>🔴 Atrasados <strong>17</strong></p>
+                        <p>🟢 Pagos <strong id="totalPagos">-</strong></p>
+                        <p>🟡 Pendentes <strong id="totalPendentes">-</strong></p>
+                        <p>🔴 Atrasados <strong id="totalAtrasados">-</strong></p>
                     </div>
                 </div>
 
@@ -154,39 +112,7 @@
                         </tr>
                     </thead>
 
-                    <tbody>
-
-                        <tr>
-                            <td>João Silva</td>
-                            <td>05/08/2026</td>
-                            <td>R$ 99,90</td>
-                            <td class="pago">Pago</td>
-                        </tr>
-
-                        <tr>
-                            <td>Maria Santos</td>
-                            <td>07/08/2026</td>
-                            <td>R$ 119,90</td>
-                            <td class="pago">Pago</td>
-                        </tr>
-
-                        <tr>
-                            <td>Pedro Oliveira</td>
-                            <td>10/08/2026</td>
-                            <td>R$ 89,90</td>
-                            <td class="pendente">Pendente</td>
-                        </tr>
-
-                        <tr>
-                            <td>Ana Costa</td>
-                            <td>12/08/2026</td>
-                            <td>R$ 149,90</td>
-                            <td class="pago">Pago</td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
+                  <tbody id="tabelaHistorico"></tbody>
 
             </section>
 
@@ -200,6 +126,108 @@
             window.location.href = "index.html";
         }
     </script>
+
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+    async function carregarDashboard() {
+        const clientesSnap = await getDocs(collection(db, "clientes"));
+        document.getElementById("totalClientes").textContent = clientesSnap.size;
+        document.getElementById("clientesAtivos").textContent = clientesSnap.size;
+
+        const faturasSnap = await getDocs(collection(db, "faturas"));
+        const faturas = [];
+        faturasSnap.forEach((doc) => faturas.push(doc.data()));
+
+        // Inadimplentes (clientes únicos com fatura pendente ou atrasada)
+        const inadimplentes = new Set();
+        faturas.forEach((f) => {
+            if (f.status === "pendente" || f.status === "atrasado") {
+                inadimplentes.add(f.clienteId);
+            }
+        });
+        document.getElementById("totalInadimplentes").textContent = inadimplentes.size;
+
+        // Faturamento do mês atual
+        const hoje = new Date();
+        const mesAtual = hoje.toISOString().slice(0, 7);
+        let totalMes = 0;
+        faturas.forEach((f) => {
+            if (f.mes === mesAtual && f.status === "pago") {
+                totalMes += f.valor;
+            }
+        });
+        document.getElementById("faturamentoMes").textContent =
+            "R$ " + totalMes.toFixed(2).replace(".", ",");
+
+        // Gráfico: soma por mês
+        const totaisPorMes = {};
+        faturas.forEach((f) => {
+            if (f.status === "pago") {
+                totaisPorMes[f.mes] = (totaisPorMes[f.mes] || 0) + f.valor;
+            }
+        });
+        const mesesOrdenados = Object.keys(totaisPorMes).sort();
+        const maiorValor = Math.max(...Object.values(totaisPorMes), 1);
+        const grafico = document.getElementById("graficoFaturamento");
+        grafico.innerHTML = "";
+
+        const nomesMes = { "01": "Jan", "02": "Fev", "03": "Mar", "04": "Abr", "05": "Mai", "06": "Jun", "07": "Jul", "08": "Ago", "09": "Set", "10": "Out", "11": "Nov", "12": "Dez" };
+
+        mesesOrdenados.forEach((mes) => {
+            const valor = totaisPorMes[mes];
+            const altura = (valor / maiorValor) * 100;
+            const mesTexto = nomesMes[mes.slice(5, 7)] || mes;
+            grafico.innerHTML += `
+                <div>
+                    <span>${mesTexto}</span>
+                    <i style="height: ${altura}%;"></i>
+                </div>
+            `;
+        });
+
+        if (mesesOrdenados.length === 0) {
+            grafico.innerHTML = "<p style='color:#94a3b8;'>Nenhum pagamento registrado ainda.</p>";
+        }
+
+        // Situação dos pagamentos (pagos, pendentes, atrasados)
+        let pagos = 0, pendentes = 0, atrasados = 0;
+        faturas.forEach((f) => {
+            if (f.status === "pago") pagos++;
+            else if (f.status === "pendente") pendentes++;
+            else if (f.status === "atrasado") atrasados++;
+        });
+        document.getElementById("totalPagos").textContent = pagos;
+        document.getElementById("totalPendentes").textContent = pendentes;
+        document.getElementById("totalAtrasados").textContent = atrasados;
+
+        // Histórico (10 mais recentes)
+        const historico = [...faturas].sort((a, b) => new Date(b.data) - new Date(a.data)).slice(0, 10);
+        const tabela = document.getElementById("tabelaHistorico");
+        tabela.innerHTML = "";
+
+        const statusTexto = { pago: "Pago", pendente: "Pendente", atrasado: "Atrasado" };
+
+        historico.forEach((f) => {
+            const dataFormatada = new Date(f.data + "T00:00:00").toLocaleDateString("pt-BR");
+            tabela.innerHTML += `
+                <tr>
+                    <td>${f.clienteNome}</td>
+                    <td>${dataFormatada}</td>
+                    <td>R$ ${f.valor.toFixed(2).replace(".", ",")}</td>
+                    <td class="${f.status}">${statusTexto[f.status]}</td>
+                </tr>
+            `;
+        });
+
+        if (historico.length === 0) {
+            tabela.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#94a3b8;'>Nenhum pagamento registrado.</td></tr>";
+        }
+    }
+
+    carregarDashboard();
+</script>
 
 </body>
 </html>

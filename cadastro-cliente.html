@@ -28,6 +28,21 @@
                 <input type="text" id="senha" placeholder="Ex: 1234">
             </div>
 
+         <div class="campo">
+               <label for="rua">Rua</label>
+               <input type="text" id="rua" placeholder="Ex: Rua das Flores">
+          </div>
+
+            <div class="campo">
+    <label for="numero">Número</label>
+    <input type="text" id="numero" placeholder="Ex: 123">
+          </div>
+
+        <div class="campo">
+             <label for="referencia">Ponto de referência</label>
+             <input type="text" id="referencia" placeholder="Ex: Perto da padaria">
+        </div>
+
             <div class="campo">
                 <label for="plano">Plano</label>
                 <input type="text" id="plano" placeholder="Ex: Fibra 200MB">
@@ -51,6 +66,9 @@
         import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
         window.cadastrarCliente = async function () {
+            const rua = document.getElementById("rua").value.trim();
+            const numero = document.getElementById("numero").value.trim();
+            const referencia = document.getElementById("referencia").value.trim();
             const nome = document.getElementById("nome").value.trim();
             const cpfDigitado = document.getElementById("cpf").value;
             const cpf = cpfDigitado.replace(/\D/g, "");
@@ -59,7 +77,7 @@
             const valor = parseFloat(document.getElementById("valor").value);
             const mensagem = document.getElementById("mensagem");
 
-            if (!nome || !cpf || !senha || !plano || isNaN(valor)) {
+            if (!nome || !cpf || !senha || !plano || isNaN(valor) || !rua || !numero || !referencia) {
                 mensagem.style.color = "red";
                 mensagem.textContent = "Preencha todos os campos corretamente.";
                 return;
@@ -70,6 +88,9 @@
                     nome: nome,
                     cpf: cpf,
                     senha: senha,
+                    rua: rua,
+                    numero: numero,
+                    referencia: referencia,
                     plano: plano,
                     valorMensalidade: valor,
                     faturas: [],
@@ -84,6 +105,9 @@
                 document.getElementById("senha").value = "";
                 document.getElementById("plano").value = "";
                 document.getElementById("valor").value = "";
+                document.getElementById("rua").value = "";
+                document.getElementById("numero").value = "";
+                document.getElementById("referencia").value = "";
             } catch (erro) {
                 mensagem.style.color = "red";
                 mensagem.textContent = "Erro ao cadastrar: " + erro.message;
