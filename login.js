@@ -1,72 +1,59 @@
+import { db } from "./firebase-config.js";
+import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
 const funcionarios = [
     { login: "func1", senha: "func123", nome: "Carlos Souza" },
     { login: "func2", senha: "func123", nome: "Fernanda Lima" }
 ];
 
-const clientes = [
-    {
-        cpf: "12345678900",
-        senha: "1234",
-        nome: "João Silva",
-        plano: "Fibra 200MB",
-        valorMensalidade: 99.90,
-        faturas: [
-            { mes: "Jun/2026", valor: 99.90, status: "pago", dataPagamento: "05/06/2026" },
-            { mes: "Jul/2026", valor: 99.90, status: "pago", dataPagamento: "05/07/2026" },
-            { mes: "Ago/2026", valor: 99.90, status: "pendente", vencimento: "05/08/2026" }
-        ]
-    },
-    {
-        cpf: "98765432100",
-        senha: "1234",
-        nome: "Maria Santos",
-        plano: "Fibra 400MB",
-        valorMensalidade: 119.90,
-        faturas: [
-            { mes: "Jun/2026", valor: 119.90, status: "pago", dataPagamento: "07/06/2026" },
-            { mes: "Jul/2026", valor: 119.90, status: "atrasado", vencimento: "07/07/2026" },
-            { mes: "Ago/2026", valor: 119.90, status: "pendente", vencimento: "07/08/2026" }
-        ]
-    }
-];
-
-function fazerLogin() {
+window.fazerLogin = async function () {
     const loginDigitado = document.getElementById("cpf").value;
     const cpfLimpo = loginDigitado.replace(/\D/g, "");
     const senha = document.getElementById("senha").value;
     const mensagem = document.getElementById("mensagem");
 
+    // 1. ADM
     if (loginDigitado === "ADM" && senha === "1025") {
         mensagem.style.color = "lightgreen";
         mensagem.textContent = "Login realizado!";
-        setTimeout(function () {
-            window.location.href = "dashboard.html";
-        }, 500);
+        setTimeout(() => window.location.href = "dashboard.html", 500);
         return;
     }
 
+    // 2. Funcionário
     const funcionario = funcionarios.find(f => f.login === loginDigitado && f.senha === senha);
     if (funcionario) {
         localStorage.setItem("funcionarioLogado", JSON.stringify(funcionario));
         mensagem.style.color = "lightgreen";
         mensagem.textContent = "Login realizado!";
-        setTimeout(function () {
-            window.location.href = "funcionario-dashboard.html";
-        }, 500);
+        setTimeout(() => window.location.href = "funcionario-dashboard.html", 500);
         return;
     }
 
-    const cliente = clientes.find(c => c.cpf === cpfLimpo && c.senha === senha);
-    if (cliente) {
-        localStorage.setItem("clienteLogado", JSON.stringify(cliente));
-        mensagem.style.color = "lightgreen";
-        mensagem.textContent = "Login realizado!";
-        setTimeout(function () {
-            window.location.href = "cliente-dashboard.html";
-        }, 500);
-        return;
-    }
+    // 3. Cliente (busca no Firebase)
+    mensagem.style.color = "white";
+    mensagem.textContent = "Verificando...";
 
-    mensagem.style.color = "red";
-    mensagem.textContent = "Login ou senha incorretos!";
-}
+    try {
+        const clientesRef = collection(db, "clientes");
+        const q = query(clientesRef, where("cpf", "==", cpfLimpo), where("senha", "==", senha));
+        const resultado = await getDocs(q);
+
+        if (!resultado.empty) {
+            const clienteDoc = resultado.docs[0];
+            const clienteDados = clienteDoc.data();
+            clienteDados.id = clienteDoc.id;
+
+            localStorage.setItem("clienteLogado", JSON.stringify(clienteDados));
+            mensagem.style.color = "lightgreen";
+            mensagem.textContent = "Login realizado!";
+            setTimeout(() => window.location.href = "cliente-dashboard.html", 500);
+        } else {
+            mensagem.style.color = "red";
+            mensagem.textContent = "CPF/login ou senha incorretos!";
+        }
+    } catch (erro) {
+        mensagem.style.color = "red";
+        mensagem.textContent = "Erro ao verificar login: " + erro.message;
+    }
+};
