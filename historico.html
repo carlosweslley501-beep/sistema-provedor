@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico - Sistema Provedor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="dashboard">
+
+        <aside class="menu">
+            <h2>🌐 Provedor</h2>
+            <nav>
+                <a href="dashboard.html">📊 Dashboard</a>
+                <a href="cadastro-cliente.html">👥 Cadastrar Cliente</a>
+                <a href="cadastro-plano.html">📡 Planos</a>
+                <a href="status-rede.html">📶 Status de Rede</a>
+                <a href="cadastro-pagamento.html">💰 Pagamentos</a>
+                <a href="historico.html">📋 Histórico</a>
+                <a href="relatorios.html">📈 Relatórios</a>
+                <a href="configuracoes.html">⚙️ Configurações</a>
+            </nav>
+            <button onclick="window.location.href='dashboard.html'">Voltar</button>
+        </aside>
+
+        <main class="conteudo">
+            <header>
+                <div>
+                    <h1>Histórico de Pagamentos</h1>
+                    <p>Todas as faturas registradas no sistema</p>
+                </div>
+            </header>
+
+            <section class="painel" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 20px;">
+                <div class="campo" style="margin-bottom: 0;">
+                    <label for="filtroStatus">Status</label>
+                    <select id="filtroStatus" style="width:100%; padding:12px; border-radius:10px; background:#0f172a; color:white; border:1px solid #475569;">
+                        <option value="todos">Todos</option>
+                        <option value="pago">Pago</option>
+                        <option value="pendente">Pendente</option>
+                        <option value="atrasado">Atrasado</option>
+                    </select>
+                </div>
+
+                <div class="campo" style="margin-bottom: 0;">
+                    <label for="filtroMes">Mês</label>
+                    <input type="month" id="filtroMes" style="width:100%; padding:12px; border-radius:10px; background:#0f172a; color:white; border:1px solid #475569;">
+                </div>
+
+                <div class="campo" style="margin-bottom: 0;">
+                    <label for="filtroCliente">Cliente</label>
+                    <input type="text" id="filtroCliente" placeholder="Buscar por nome" style="width:100%; padding:12px; border-radius:10px; background:#0f172a; color:white; border:1px solid #475569;">
+                </div>
+            </section>
+
+            <section class="historico">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Mês</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaCompleta">
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+        let todasFaturas = [];
+
+        async function carregarFaturas() {
+            const resultado = await getDocs(collection(db, "faturas"));
+            todasFaturas = [];
+            resultado.forEach((doc) => todasFaturas.push(doc.data()));
+            todasFaturas.sort((a, b) => new Date(b.data) - new Date(a.data));
+            renderizarTabela(todasFaturas);
+        }
+
+        function renderizarTabela(faturas) {
+            const tabela = document.getElementById("tabelaCompleta");
+            tabela.innerHTML = "";
+
+            const statusTexto = { pago: "Pago", pendente: "Pendente", atrasado: "Atrasado" };
+
+            faturas.forEach((f) => {
+                const dataFormatada = new Date(f.data + "T00:00:00").toLocaleDateString("pt-BR");
+                tabela.innerHTML += `
+                    <tr>
+                        <td>${f.clienteNome}</td>
+                        <td>${f.mes}</td>
+                        <td>R$ ${f.valor.toFixed(2).replace(".", ",")}</td>
+                        <td class="${f.status}">${statusTexto[f.status]}</td>
+                        <td>${dataFormatada}</td>
+                    </tr>
+                `;
+            });
+
+            if (faturas.length === 0) {
+                tabela.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#94a3b8;'>Nenhum resultado encontrado.</td></tr>";
+            }
+        }
+
+        function aplicarFiltros() {
+            const status = document.getElementById("filtroStatus").value;
+            const mes = document.getElementById("filtroMes").value;
+            const cliente = document.getElementById("filtroCliente").value.toLowerCase();
+
+            let filtradas = todasFaturas;
+
+            if (status !== "todos") {
+                filtradas = filtradas.filter((f) => f.status === status);
+            }
+            if (mes) {
+                filtradas = filtradas.filter((f) => f.mes === mes);
+            }
+            if (cliente) {
+                filtradas = filtradas.filter((f) => f.clienteNome.toLowerCase().includes(cliente));
+            }
+
+            renderizarTabela(filtradas);
+        }
+
+        document.getElementById("filtroStatus").addEventListener("change", aplicarFiltros);
+        document.getElementById("filtroMes").addEventListener("change", aplicarFiltros);
+        document.getElementById("filtroCliente").addEventListener("input", aplicarFiltros);
+
+        carregarFaturas();
+    </script>
+</body>
+</html>

@@ -72,39 +72,57 @@
         }
         carregarClientes();
 
-        window.lancarPagamento = async function () {
-            const clienteId = selectCliente.value;
-            const clienteNome = selectCliente.options[selectCliente.selectedIndex]?.dataset.nome;
-            const mes = document.getElementById("mes").value;
-            const valor = parseFloat(document.getElementById("valorFatura").value);
-            const status = document.getElementById("statusFatura").value;
-            const data = document.getElementById("dataFatura").value;
-            const mensagem = document.getElementById("mensagem");
+       window.lancarPagamento = async function () {
+    const botao = document.querySelector("button");
+    botao.disabled = true;
+    botao.textContent = "Salvando...";
 
-            if (!clienteId || !mes || isNaN(valor) || !data) {
-                mensagem.style.color = "red";
-                mensagem.textContent = "Preencha todos os campos.";
-                return;
-            }
+    const clienteId = selectCliente.value;
+    const clienteNome = selectCliente.options[selectCliente.selectedIndex]?.dataset.nome;
+    const mes = document.getElementById("mes").value;
+    const valor = parseFloat(document.getElementById("valorFatura").value);
+    const status = document.getElementById("statusFatura").value;
+    const data = document.getElementById("dataFatura").value;
+    const mensagem = document.getElementById("mensagem");
 
-            try {
-                await addDoc(collection(db, "faturas"), {
-                    clienteId: clienteId,
-                    clienteNome: clienteNome,
-                    mes: mes,
-                    valor: valor,
-                    status: status,
-                    data: data,
-                    criadoEm: new Date().toISOString()
-                });
+    if (!clienteId || !mes || isNaN(valor) || !data) {
+        mensagem.style.color = "red";
+        mensagem.textContent = "Preencha todos os campos.";
+        botao.disabled = false;
+        botao.textContent = "Salvar";
+        return;
+    }
 
-                mensagem.style.color = "lightgreen";
-                mensagem.textContent = "Pagamento lançado com sucesso!";
-            } catch (erro) {
-                mensagem.style.color = "red";
-                mensagem.textContent = "Erro: " + erro.message;
-            }
-        };
+    try {
+        await addDoc(collection(db, "faturas"), {
+            clienteId: clienteId,
+            clienteNome: clienteNome,
+            mes: mes,
+            valor: valor,
+            status: status,
+            data: data,
+            criadoEm: new Date().toISOString()
+        });
+
+        mensagem.style.color = "lightgreen";
+        mensagem.textContent = "Pagamento lançado com sucesso!";
+
+        document.getElementById("mes").value = "";
+        document.getElementById("valorFatura").value = "";
+        document.getElementById("dataFatura").value = "";
+        document.getElementById("statusFatura").value = "pago";
+        setTimeout(() => {
+            window.location.href = "dashboard.html";
+        }, 1000);
+    } catch (erro) {
+        mensagem.style.color = "red";
+        mensagem.textContent = "Erro: " + erro.message;
+    }
+
+    botao.disabled = false;
+    botao.textContent = "Salvar";
+    };
+
     </script>
 </body>
 </html>

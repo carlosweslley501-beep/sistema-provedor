@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - Sistema Provedor</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <div class="dashboard">
+
+        <aside class="menu">
+            <h2>🌐 Provedor</h2>
+            <nav>
+                <a href="dashboard.html">📊 Dashboard</a>
+                <a href="cadastro-cliente.html">👥 Cadastrar Cliente</a>
+                <a href="cadastro-plano.html">📡 Planos</a>
+                <a href="status-rede.html">📶 Status de Rede</a>
+                <a href="cadastro-pagamento.html">💰 Pagamentos</a>
+                <a href="historico.html">📋 Histórico</a>
+                <a href="relatorios.html">📈 Relatórios</a>
+                <a href="configuracoes.html">⚙️ Configurações</a>
+            </nav>
+            <button onclick="window.location.href='dashboard.html'">Voltar</button>
+        </aside>
+
+        <main class="conteudo">
+            <header>
+                <div>
+                    <h1>Relatórios</h1>
+                    <p>Exporte os dados do sistema</p>
+                </div>
+            </header>
+
+            <section class="cards">
+                <div class="card">
+                    <span>👥</span>
+                    <h3>Relatório de Clientes</h3>
+                    <p style="color:#94a3b8; font-size:13px; margin:8px 0 14px;">Lista completa com endereço e plano</p>
+                    <button onclick="exportarClientes()" style="width:100%;">Baixar Excel</button>
+                </div>
+
+                <div class="card">
+                    <span>💰</span>
+                    <h3>Relatório de Faturas</h3>
+                    <p style="color:#94a3b8; font-size:13px; margin:8px 0 14px;">Todos os pagamentos registrados</p>
+                    <button onclick="exportarFaturas()" style="width:100%;">Baixar Excel</button>
+                </div>
+
+                <div class="card">
+                    <span>🖨️</span>
+                    <h3>Relatório em PDF</h3>
+                    <p style="color:#94a3b8; font-size:13px; margin:8px 0 14px;">Resumo geral para impressão</p>
+                    <button onclick="gerarPDF()" style="width:100%;">Gerar PDF</button>
+                </div>
+            </section>
+
+            <section class="historico" id="areaImpressao">
+                <h2>Resumo Geral</h2>
+                <div id="resumoTexto" style="color:#cbd5e1; line-height:1.8;">
+                    Carregando dados...
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+        let clientes = [];
+        let faturas = [];
+
+        async function carregarDados() {
+            const clientesSnap = await getDocs(collection(db, "clientes"));
+            clientes = [];
+            clientesSnap.forEach((doc) => clientes.push(doc.data()));
+
+            const faturasSnap = await getDocs(collection(db, "faturas"));
+            faturas = [];
+            faturasSnap.forEach((doc) => faturas.push(doc.data()));
+
+            montarResumo();
+        }
+
+        function montarResumo() {
+            const totalPago = faturas.filter(f => f.status === "pago").reduce((soma, f) => soma + f.valor, 0);
+            const totalPendente = faturas.filter(f => f.status === "pendente").length;
+            const totalAtrasado = faturas.filter(f => f.status === "atrasado").length;
+
+            document.getElementById("resumoTexto").innerHTML = `
+                <p><strong>Total de clientes:</strong> ${clientes.length}</p>
+                <p><strong>Total de faturas registradas:</strong> ${faturas.length}</p>
+                <p><strong>Valor total recebido (pago):</strong> R$ ${totalPago.toFixed(2).replace(".", ",")}</p>
+                <p><strong>Faturas pendentes:</strong> ${totalPendente}</p>
+                <p><strong>Faturas atrasadas:</strong> ${totalAtrasado}</p>
+                <p style="margin-top:10px; color:#64748b; font-size:13px;">Gerado em ${new Date().toLocaleString("pt-BR")}</p>
+            `;
+        }
+
+        window.exportarClientes = function () {
+            const dadosPlanilha = clientes.map((c) => ({
+                Nome: c.nome,
+                CPF: c.cpf,
+                Rua: c.rua || "",
+                Numero: c.numero || "",
+                Referencia: c.referencia || "",
+                Plano: c.plano,
+                Mensalidade: c.valorMensalidade
+            }));
+
+            const planilha = XLSX.utils.json_to_sheet(dadosPlanilha);
+            const livro = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(livro, planilha, "Clientes");
+            XLSX.writeFile(livro, "relatorio-clientes.xlsx");
+        };
+
+        window.exportarFaturas = function () {
+            const dadosPlanilha = faturas.map((f) => ({
+                Cliente: f.clienteNome,
+                Mes: f.mes,
+                Valor: f.valor,
+                Status: f.status,
+                Data: f.data
+            }));
+
+            const planilha = XLSX.utils.json_to_sheet(dadosPlanilha);
+            const livro = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(livro, planilha, "Faturas");
+            XLSX.writeFile(livro, "relatorio-faturas.xlsx");
+        };
+
+        window.gerarPDF = function () {
+            window.print();
+        };
+
+        carregarDados();
+    </script>
+</body>
+</html>

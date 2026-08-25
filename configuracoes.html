@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Sistema Provedor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="dashboard">
+
+        <aside class="menu">
+            <h2>🌐 Provedor</h2>
+            <nav>
+                <a href="dashboard.html">📊 Dashboard</a>
+                <a href="cadastro-cliente.html">👥 Cadastrar Cliente</a>
+                <a href="cadastro-plano.html">📡 Planos</a>
+                <a href="status-rede.html">📶 Status de Rede</a>
+                <a href="cadastro-pagamento.html">💰 Pagamentos</a>
+                <a href="historico.html">📋 Histórico</a>
+                <a href="relatorios.html">📈 Relatórios</a>
+                <a href="configuracoes.html">⚙️ Configurações</a>
+            </nav>
+            <button onclick="window.location.href='dashboard.html'">Voltar</button>
+        </aside>
+
+        <main class="conteudo">
+            <header>
+                <div>
+                    <h1>Configurações</h1>
+                    <p>Gerenciar funcionários do sistema</p>
+                </div>
+            </header>
+
+            <section class="historico" style="margin-bottom: 25px;">
+                <h2>Adicionar Funcionário</h2>
+
+                <div class="campo">
+                    <label for="nomeFunc">Nome</label>
+                    <input type="text" id="nomeFunc" placeholder="Nome do funcionário">
+                </div>
+
+                <div class="campo">
+                    <label for="loginFunc">Login</label>
+                    <input type="text" id="loginFunc" placeholder="Ex: func3">
+                </div>
+
+                <div class="campo">
+                    <label for="senhaFunc">Senha</label>
+                    <input type="text" id="senhaFunc" placeholder="Senha de acesso">
+                </div>
+
+                <button onclick="adicionarFuncionario()">Adicionar</button>
+                <p id="mensagem"></p>
+            </section>
+
+            <section class="historico">
+                <h2>Funcionários Cadastrados</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Login</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaFuncionarios">
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+        async function carregarFuncionarios() {
+            const resultado = await getDocs(collection(db, "funcionarios"));
+            const tabela = document.getElementById("tabelaFuncionarios");
+            tabela.innerHTML = "";
+
+            resultado.forEach((docSnap) => {
+                const f = docSnap.data();
+                tabela.innerHTML += `
+                    <tr>
+                        <td>${f.nome}</td>
+                        <td>${f.login}</td>
+                        <td><button onclick="removerFuncionario('${docSnap.id}')" style="background:#dc2626; padding:8px 14px; font-size:13px;">Remover</button></td>
+                    </tr>
+                `;
+            });
+
+            if (resultado.empty) {
+                tabela.innerHTML = "<tr><td colspan='3' style='text-align:center; color:#94a3b8;'>Nenhum funcionário cadastrado ainda.</td></tr>";
+            }
+        }
+
+        window.adicionarFuncionario = async function () {
+            const nome = document.getElementById("nomeFunc").value.trim();
+            const login = document.getElementById("loginFunc").value.trim();
+            const senha = document.getElementById("senhaFunc").value.trim();
+            const mensagem = document.getElementById("mensagem");
+
+            if (!nome || !login || !senha) {
+                mensagem.style.color = "red";
+                mensagem.textContent = "Preencha todos os campos.";
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "funcionarios"), { nome, login, senha });
+                mensagem.style.color = "lightgreen";
+                mensagem.textContent = "Funcionário adicionado!";
+
+                document.getElementById("nomeFunc").value = "";
+                document.getElementById("loginFunc").value = "";
+                document.getElementById("senhaFunc").value = "";
+
+                carregarFuncionarios();
+            } catch (erro) {
+                mensagem.style.color = "red";
+                mensagem.textContent = "Erro: " + erro.message;
+            }
+        };
+
+        window.removerFuncionario = async function (id) {
+            if (confirm("Tem certeza que deseja remover este funcionário?")) {
+                await deleteDoc(doc(db, "funcionarios", id));
+                carregarFuncionarios();
+            }
+        };
+
+        carregarFuncionarios();
+    </script>
+</body>
+</html>

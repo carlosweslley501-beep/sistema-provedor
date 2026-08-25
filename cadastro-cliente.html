@@ -56,7 +56,7 @@
             <button onclick="cadastrarCliente()">Cadastrar</button>
             <p id="mensagem"></p>
             <p style="text-align:center; margin-top:15px;">
-                <a href="dashboard.html" style="color:#38bdf8;">Voltar ao painel</a>
+                <a href="#" onclick="voltarAopainel()" style="color:#38bdf8; cursor: pointer;">Voltar ao painel</a>
             </p>
         </div>
     </div>
@@ -113,6 +113,14 @@
                 mensagem.textContent = "Erro ao cadastrar: " + erro.message;
             }
         };
+        window.voltarAopainel = function () {
+            const dados = JSON.parse(localStorage.getItem("funcionarioLogado"));
+            if (dados && dados.permissao === "ADM") {
+                window.location.href = "dashboard.html";
+            } else {
+                window.location.href = "funcionario-dashboard.html";
+            }
+        }
     </script>
 </body>
 </html>

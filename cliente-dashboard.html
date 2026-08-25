@@ -3,102 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Conta - Sistema Provedor</title>
+    <title>Painel do Funcionário - Sistema Provedor</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Biblioteca Chart.js para os gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
 
     <div class="dashboard">
-
-        <aside class="menu">
+        <!-- Menu Superior -->
+        <header class="menu">
             <h2>🌐 Provedor</h2>
             <nav>
-                <a href="#">📋 Meu Histórico</a>
+                <a href="funcionario-dashboard.html">📊 Dashboard</a>
+                <a href="cadastro-cliente.html">👥 Cadastrar Cliente</a>
+                <a href="cadastro-plano.html">📡 Planos</a>
+                <a href="status-rede.html">📶 Status de Rede</a>
+                <a href="cadastro-pagamento.html">💰 Pagamentos</a>
+                <a href="historico.html">📄 Histórico</a>
+                <a href="relatorios.html">📈 Relatórios</a>
             </nav>
-            <button onclick="sair()">Sair</button>
-        </aside>
+            <button onclick="fazerLogout()">Sair</button>
+        </header>
 
+        <!-- Conteúdo Principal -->
         <main class="conteudo">
-
-            <header>
+            <header class="conteudo-header">
                 <div>
-                    <h1>Minha Conta</h1>
-                    <p id="boasVindas">Bem-vindo!</p>
+                    <h1>Dashboard</h1>
+                    <p id="perfilNome">Bem-vindo, funcionário.</p>
                 </div>
-                <div class="perfil" id="perfilNome">👤</div>
             </header>
 
-            <section class="historico">
-                <h2>Histórico de Pagamentos</h2>
+            <!-- Cards Superiores -->
+            <section class="cards">
+                <div class="card">
+                    <span>👥</span>
+                    <h3>Total de Clientes</h3>
+                    <strong id="totalClientes">0</strong>
+                </div>
+                <div class="card">
+                    <span>🟢</span>
+                    <h3>Clientes Ativos</h3>
+                    <strong id="clientesAtivos">0</strong>
+                </div>
+                <div class="card">
+                    <span>🔴</span>
+                    <h3>Inadimplentes</h3>
+                    <strong id="inadimplentes">0</strong>
+                </div>
+                <div class="card">
+                    <span>💰</span>
+                    <h3>Faturamento do Mês</h3>
+                    <strong id="faturamentoCard">R$ 0,00</strong>
+                </div>
+            </section>
+
+            <!-- Área de Gráficos (Lado a Lado) -->
+            <section class="painel">
+                <!-- Gráfico de Barras: Faturamento Mensal -->
+                <div class="grafico">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="font-size: 17px; margin: 0;">Faturamento mensal</h2>
+                        
+                        <!-- Caixinha de Meta ao lado -->
+                        <div style="display: flex; gap: 20px; align-items: baseline; background: #1e293b; padding: 6px 14px; border-radius: 8px; border: 1px solid #334155;">
+                            <div>
+                                <span style="font-size: 11px; color: #94a3b8; display: block;">Faturamento</span>
+                                <strong id="faturamentoTotal" style="font-size: 15px; color: #fff;">R$ 2.800,00</strong>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: #94a3b8; display: block;">Meta</span>
+                                <strong style="font-size: 15px; color: #38bdf8;">R$ 5.000,00</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="position: relative; width: 100%; height: 220px;">
+                        <canvas id="graficoBarras"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Pizza: Situação dos Pagamentos -->
+                <div class="resumo" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <h2 style="font-size: 17px; margin-bottom: 12px; align-self: flex-start;">Situação dos pagamentos</h2>
+                    <div style="position: relative; width: 100%; max-width: 220px; height: 220px;">
+                        <canvas id="graficoPizza"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tabela de Histórico -->
+            <section class="historico" style="margin-top: 30px;">
+                <h2 style="font-size: 17px; margin-bottom: 15px;">Histórico de pagamentos</h2>
                 <table>
                     <thead>
                         <tr>
-                            <th>Mês</th>
+                            <th>Cliente</th>
+                            <th>Data</th>
                             <th>Valor</th>
                             <th>Status</th>
-                            <th>Data</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelaFaturas">
+                    <tbody id="tabelaHistorico">
+                        <tr>
+                            <td>Carlos wesley</td>
+                            <td>25/08/2026</td>
+                            <td>R$ 100,00</td>
+                            <td class="pago">Pago</td>
+                        </tr>
                     </tbody>
                 </table>
             </section>
-
         </main>
     </div>
 
+    <!-- Scripts do Sistema e Gráficos -->
     <script type="module">
         import { db } from "./firebase-config.js";
-        import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-        const dados = JSON.parse(localStorage.getItem("clienteLogado"));
-
-        if (!dados) {
+        // Verifica autenticação
+        const dadosUsuario = JSON.parse(localStorage.getItem("funcionarioLogado"));
+        if (!dadosUsuario) {
             window.location.href = "index.html";
         } else {
-            document.getElementById("boasVindas").textContent = "Bem-vindo, " + dados.nome + ".";
-            document.getElementById("perfilNome").textContent = "👤 " + dados.nome;
-
-            carregarFaturas(dados.id);
-        }
-
-        async function carregarFaturas(clienteId) {
-            const faturasRef = collection(db, "faturas");
-            const q = query(faturasRef, where("clienteId", "==", clienteId));
-            const resultado = await getDocs(q);
-
-            const tabela = document.getElementById("tabelaFaturas");
-            tabela.innerHTML = "";
-
-            const statusTexto = { pago: "Pago", pendente: "Pendente", atrasado: "Atrasado" };
-
-            const faturas = [];
-            resultado.forEach((doc) => faturas.push(doc.data()));
-            faturas.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-            faturas.forEach((f) => {
-                const dataFormatada = new Date(f.data + "T00:00:00").toLocaleDateString("pt-BR");
-                tabela.innerHTML += `
-                    <tr>
-                        <td>${f.mes}</td>
-                        <td>R$ ${f.valor.toFixed(2).replace(".", ",")}</td>
-                        <td class="${f.status}">${statusTexto[f.status]}</td>
-                        <td>${dataFormatada}</td>
-                    </tr>
-                `;
-            });
-
-            if (faturas.length === 0) {
-                tabela.innerHTML = "<tr><td colspan='4' style='text-align:center; color:#94a3b8;'>Nenhuma fatura encontrada.</td></tr>";
+            const perfilElemento = document.getElementById("perfilNome");
+            if (perfilElemento && dadosUsuario.nome) {
+                perfilElemento.textContent = "👤 " + dadosUsuario.nome;
             }
         }
 
-        function sair() {
-            localStorage.removeItem("clienteLogado");
+        // Função de Logout
+        window.fazerLogout = function() {
+            localStorage.removeItem("funcionarioLogado");
             window.location.href = "index.html";
-        }
-    </script>
+        };
 
+        // Carregar dados e renderizar gráficos
+        async function carregarDashboard() {
+            try {
+                // Renderizar Gráfico de Pizza
+                const ctxPizza = document.getElementById('graficoPizza').getContext('2d');
+                new Chart(ctxPizza, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pagos', 'Pendentes', 'Atrasados'],
+                        datasets: [{
+                            data: [8, 0, 0],
+                            backgroundColor: ['#4ade80', '#facc15', '#f87171'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#94a3b8', font: { size: 12 }, padding: 12 }
+                            }
+                        }
+                    }
+                });
+
+                // Renderizar Gráfico de Barras
+                const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
+                new Chart(ctxBarras, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Ago'],
+                        datasets: [{
+                            label: 'Faturamento',
+                            data: [2800],
+                            backgroundColor: '#38bdf8',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                            y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
+                        }
+                    }
+                });
+
+                // Busca clientes reais do banco
+                const querySnapshot = await getDocs(collection(db, "clientes"));
+                const total = querySnapshot.size;
+                document.getElementById("totalClientes").textContent = total;
+                document.getElementById("clientesAtivos").textContent = total;
+                document.getElementById("faturamentoCard").textContent = "R$ 2.800,00";
+
+            } catch (erro) {
+                console.error("Erro ao carregar dados:", erro);
+            }
+        }
+
+        carregarDashboard();
+    </script>
 </body>
 </html>
