@@ -3,209 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Funcionário - Sistema Provedor</title>
+    <title>Área do Cliente - Minhas Mensalidades</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Biblioteca Chart.js para os gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .conteudo {
+            padding: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .header-cliente {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: #162035;
+            padding: 20px 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .resumo-faturas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card-stat {
+            background-color: #162035;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .status-pago {
+            background-color: rgba(74, 222, 128, 0.15);
+            color: #4ade80;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-pendente {
+            background-color: rgba(250, 204, 21, 0.15);
+            color: #facc15;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-atrasado {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .btn-sair {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn-sair:hover {
+            background: #dc2626;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="dashboard">
-        <!-- Menu Superior -->
-        <header class="menu">
-            <h2>🌐 Provedor</h2>
-            <nav>
-                <a href="funcionario-dashboard.html">📊 Dashboard</a>
-                <a href="cadastro-cliente.html">👥 Cadastrar Cliente</a>
-                <a href="cadastro-plano.html">📡 Planos</a>
-                <a href="status-rede.html">📶 Status de Rede</a>
-                <a href="cadastro-pagamento.html">💰 Pagamentos</a>
-                <a href="historico.html">📄 Histórico</a>
-                <a href="relatorios.html">📈 Relatórios</a>
-            </nav>
-            <button onclick="fazerLogout()">Sair</button>
+    <main class="conteudo">
+        <!-- Topo com dados do Cliente Logado -->
+        <header class="header-cliente">
+            <div>
+                <h1 style="font-size: 22px; margin-bottom: 4px;">Área do Assinante</h1>
+                <p id="perfilNome" style="color: #94a3b8; font-size: 15px;">Carregando dados...</p>
+                <p id="perfilCpf" style="color: #64748b; font-size: 13px; margin-top: 2px;"></p>
+            </div>
+            <button class="btn-sair" onclick="fazerLogout()">Sair da Conta</button>
         </header>
 
-        <!-- Conteúdo Principal -->
-        <main class="conteudo">
-            <header class="conteudo-header">
-                <div>
-                    <h1>Dashboard</h1>
-                    <p id="perfilNome">Bem-vindo, funcionário.</p>
-                </div>
-            </header>
+        <!-- Resumo dos Valores -->
+        <section class="resumo-faturas">
+            <div class="card-stat">
+                <span style="font-size: 22px;">✅</span>
+                <span style="color: #94a3b8; font-size: 14px;">Total já Pago</span>
+                <strong id="totalPagoValor" style="font-size: 22px; color: #4ade80;">R$ 0,00</strong>
+                <small id="qtdPagas" style="color: #64748b; font-size: 12px;">0 faturas quitadas</small>
+            </div>
 
-            <!-- Cards Superiores -->
-            <section class="cards">
-                <div class="card">
-                    <span>👥</span>
-                    <h3>Total de Clientes</h3>
-                    <strong id="totalClientes">0</strong>
-                </div>
-                <div class="card">
-                    <span>🟢</span>
-                    <h3>Clientes Ativos</h3>
-                    <strong id="clientesAtivos">0</strong>
-                </div>
-                <div class="card">
-                    <span>🔴</span>
-                    <h3>Inadimplentes</h3>
-                    <strong id="inadimplentes">0</strong>
-                </div>
-                <div class="card">
-                    <span>💰</span>
-                    <h3>Faturamento do Mês</h3>
-                    <strong id="faturamentoCard">R$ 0,00</strong>
-                </div>
-            </section>
+            <div class="card-stat">
+                <span style="font-size: 22px;">⚠️</span>
+                <span style="color: #94a3b8; font-size: 14px;">Total Pendente</span>
+                <strong id="totalPendenteValor" style="font-size: 22px; color: #facc15;">R$ 0,00</strong>
+                <small id="qtdPendentes" style="color: #64748b; font-size: 12px;">0 faturas a vencer</small>
+            </div>
 
-            <!-- Área de Gráficos (Lado a Lado) -->
-            <section class="painel">
-                <!-- Gráfico de Barras: Faturamento Mensal -->
-                <div class="grafico">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="font-size: 17px; margin: 0;">Faturamento mensal</h2>
-                        
-                        <!-- Caixinha de Meta ao lado -->
-                        <div style="display: flex; gap: 20px; align-items: baseline; background: #1e293b; padding: 6px 14px; border-radius: 8px; border: 1px solid #334155;">
-                            <div>
-                                <span style="font-size: 11px; color: #94a3b8; display: block;">Faturamento</span>
-                                <strong id="faturamentoTotal" style="font-size: 15px; color: #fff;">R$ 2.800,00</strong>
-                            </div>
-                            <div>
-                                <span style="font-size: 11px; color: #94a3b8; display: block;">Meta</span>
-                                <strong style="font-size: 15px; color: #38bdf8;">R$ 5.000,00</strong>
-                            </div>
-                        </div>
-                    </div>
+            <div class="card-stat">
+                <span style="font-size: 22px;">❌</span>
+                <span style="color: #94a3b8; font-size: 14px;">Total em Atraso</span>
+                <strong id="totalAtrasadoValor" style="font-size: 22px; color: #ef4444;">R$ 0,00</strong>
+                <small id="qtdAtrasadas" style="color: #64748b; font-size: 12px;">0 faturas vencidas</small>
+            </div>
+        </section>
 
-                    <div style="position: relative; width: 100%; height: 220px;">
-                        <canvas id="graficoBarras"></canvas>
-                    </div>
-                </div>
+        <!-- Tabela Completa das Mensalidades do Cliente -->
+        <section class="historico">
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Demonstrativo das Mensalidades</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mês / Referência</th>
+                        <th>Data (Vencimento/Pagamento)</th>
+                        <th>Valor</th>
+                        <th>Situação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaFaturasCliente">
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">
+                            Buscando mensalidades no banco de dados...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
 
-                <!-- Gráfico de Pizza: Situação dos Pagamentos -->
-                <div class="resumo" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <h2 style="font-size: 17px; margin-bottom: 12px; align-self: flex-start;">Situação dos pagamentos</h2>
-                    <div style="position: relative; width: 100%; max-width: 220px; height: 220px;">
-                        <canvas id="graficoPizza"></canvas>
-                    </div>
-                </div>
-            </section>
+    <script>
+        window.fazerLogout = function() {
+            localStorage.removeItem("clienteLogado");
+            localStorage.removeItem("funcionarioLogado");
+            window.location.href = "index.html";
+        };
+    </script>
 
-            <!-- Tabela de Histórico -->
-            <section class="historico" style="margin-top: 30px;">
-                <h2 style="font-size: 17px; margin-bottom: 15px;">Histórico de pagamentos</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Data</th>
-                            <th>Valor</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaHistorico">
-                        <tr>
-                            <td>Carlos wesley</td>
-                            <td>25/08/2026</td>
-                            <td>R$ 100,00</td>
-                            <td class="pago">Pago</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
-        </main>
-    </div>
-
-    <!-- Scripts do Sistema e Gráficos -->
     <script type="module">
         import { db } from "./firebase-config.js";
         import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
-        // Verifica autenticação
-        const dadosUsuario = JSON.parse(localStorage.getItem("funcionarioLogado"));
-        if (!dadosUsuario) {
+        const cliente = JSON.parse(localStorage.getItem("clienteLogado")) || JSON.parse(localStorage.getItem("funcionarioLogado"));
+
+        if (!cliente) {
             window.location.href = "index.html";
         } else {
-            const perfilElemento = document.getElementById("perfilNome");
-            if (perfilElemento && dadosUsuario.nome) {
-                perfilElemento.textContent = "👤 " + dadosUsuario.nome;
+            const nomeCliente = cliente.nome || cliente.clienteNome || "Cliente";
+            const cpfCliente = cliente.cpf || "";
+
+            document.getElementById("perfilNome").textContent = "👤 Cliente: " + nomeCliente;
+            if (cpfCliente) {
+                document.getElementById("perfilCpf").textContent = "CPF: " + cpfCliente;
             }
+
+            carregarFaturasEmTempoReal(cliente);
         }
 
-        // Função de Logout
-        window.fazerLogout = function() {
-            localStorage.removeItem("funcionarioLogado");
-            window.location.href = "index.html";
-        };
+        async function carregarFaturasEmTempoReal(clienteLogado) {
+            const tabela = document.getElementById("tabelaFaturasCliente");
 
-        // Carregar dados e renderizar gráficos
-        async function carregarDashboard() {
             try {
-                // Renderizar Gráfico de Pizza
-                const ctxPizza = document.getElementById('graficoPizza').getContext('2d');
-                new Chart(ctxPizza, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Pagos', 'Pendentes', 'Atrasados'],
-                        datasets: [{
-                            data: [8, 0, 0],
-                            backgroundColor: ['#4ade80', '#facc15', '#f87171'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { color: '#94a3b8', font: { size: 12 }, padding: 12 }
-                            }
-                        }
-                    }
+                const snap = await getDocs(collection(db, "faturas"));
+                const todasFaturas = [];
+
+                snap.forEach(doc => {
+                    const dados = doc.data();
+                    dados._docId = doc.id;
+                    todasFaturas.push(dados);
                 });
 
-                // Renderizar Gráfico de Barras
-                const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
-                new Chart(ctxBarras, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Ago'],
-                        datasets: [{
-                            label: 'Faturamento',
-                            data: [2800],
-                            backgroundColor: '#38bdf8',
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
-                        scales: {
-                            x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-                            y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
-                        }
-                    }
+                // Normalizadores para vincular por ID, CPF ou Nome
+                const idAlvo = String(clienteLogado.id || "").trim().toLowerCase();
+                const cpfAlvo = String(clienteLogado.cpf || "").replace(/\D/g, "");
+                const nomeAlvo = String(clienteLogado.nome || clienteLogado.clienteNome || "").trim().toLowerCase();
+
+                // Filtra as faturas pertencentes exclusivamente ao cliente logado
+                const faturasDoCliente = todasFaturas.filter(f => {
+                    const cId = String(f.clienteId || "").trim().toLowerCase();
+                    const cCpf = String(f.cpf || f.clienteCpf || "").replace(/\D/g, "");
+                    const cNome = String(f.clienteNome || "").trim().toLowerCase();
+
+                    const bateId = idAlvo && cId === idAlvo;
+                    const bateCpf = cpfAlvo && cCpf === cpfAlvo;
+                    const bateNome = nomeAlvo && cNome === nomeAlvo;
+
+                    return bateId || bateCpf || bateNome;
                 });
 
-                // Busca clientes reais do banco
-                const querySnapshot = await getDocs(collection(db, "clientes"));
-                const total = querySnapshot.size;
-                document.getElementById("totalClientes").textContent = total;
-                document.getElementById("clientesAtivos").textContent = total;
-                document.getElementById("faturamentoCard").textContent = "R$ 2.800,00";
+                if (faturasDoCliente.length === 0) {
+                    tabela.innerHTML = `<tr><td colspan='4' style='text-align: center; color: #94a3b8; padding: 25px;'>Nenhuma mensalidade cadastrada para a sua conta.</td></tr>`;
+                    return;
+                }
+
+                // Ordena por data decrescente (mais recente primeiro)
+                faturasDoCliente.sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
+
+                let totalPago = 0, totalPendente = 0, totalAtrasado = 0;
+                let contPago = 0, contPendente = 0, contAtrasado = 0;
+
+                tabela.innerHTML = "";
+
+                const nomesMeses = { 
+                    "01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril", 
+                    "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto", 
+                    "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro" 
+                };
+
+                faturasDoCliente.forEach(f => {
+                    const status = String(f.status || "pendente").trim().toLowerCase();
+                    const valorNum = Number(f.valor) || 0;
+
+                    // Formatação do Mês
+                    let mesExibicao = f.mes || "-";
+                    if (f.mes && f.mes.includes("-")) {
+                        const partes = f.mes.split("-");
+                        mesExibicao = (nomesMeses[partes[1]] || partes[1]) + " de " + partes[0];
+                    } else if (f.data && f.data.includes("-")) {
+                        const partes = f.data.split("-");
+                        mesExibicao = (nomesMeses[partes[1]] || partes[1]) + " de " + partes[0];
+                    }
+
+                    // Formatação da Data
+                    let dataExibicao = f.data || "-";
+                    if (f.data && f.data.includes("-")) {
+                        const d = f.data.split("-");
+                        dataExibicao = `${d[2]}/${d[1]}/${d[0]}`;
+                    }
+
+                    // Formatação do Valor
+                    const valorFormatado = "R$ " + valorNum.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    // Monta tag de status e calcula somas
+                    let tagStatus = "";
+                    if (status === "pago") {
+                        totalPago += valorNum;
+                        contPago++;
+                        tagStatus = `<span class="status-pago">Pago</span>`;
+                    } else if (status === "atrasado") {
+                        totalAtrasado += valorNum;
+                        contAtrasado++;
+                        tagStatus = `<span class="status-atrasado">Atrasado</span>`;
+                    } else {
+                        totalPendente += valorNum;
+                        contPendente++;
+                        tagStatus = `<span class="status-pendente">Pendente</span>`;
+                    }
+
+                    tabela.innerHTML += `
+                        <tr>
+                            <td><strong>${mesExibicao}</strong></td>
+                            <td>${dataExibicao}</td>
+                            <td>${valorFormatado}</td>
+                            <td>${tagStatus}</td>
+                        </tr>
+                    `;
+                });
+
+                // Atualiza os cards superiores com os valores reais
+                document.getElementById("totalPagoValor").textContent = "R$ " + totalPago.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+                document.getElementById("qtdPagas").textContent = `${contPago} faturas quitadas`;
+
+                document.getElementById("totalPendenteValor").textContent = "R$ " + totalPendente.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+                document.getElementById("qtdPendentes").textContent = `${contPendente} faturas a vencer`;
+
+                document.getElementById("totalAtrasadoValor").textContent = "R$ " + totalAtrasado.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+                document.getElementById("qtdAtrasadas").textContent = `${contAtrasado} faturas vencidas`;
 
             } catch (erro) {
-                console.error("Erro ao carregar dados:", erro);
+                console.error("Erro ao carregar faturas:", erro);
+                tabela.innerHTML = `<tr><td colspan='4' style='text-align: center; color: red; padding: 20px;'>Erro ao carregar dados: ${erro.message}</td></tr>`;
             }
         }
-
-        carregarDashboard();
     </script>
 </body>
 </html>

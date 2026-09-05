@@ -313,3 +313,64 @@ tbody tr:last-child {
     color: #facc15;
     font-weight: bold;
 }
+/* Organização da seção de gráficos */
+section.painel {
+  display: grid;
+  grid-template-columns: 1.8fr 1.2fr;
+  gap: 20px;
+  align-items: stretch;
+  margin-top: 20px;
+}
+
+.grafico {
+  background-color: #162035;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Container do gráfico de rosca e legendas */
+.doughnut-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 240px;
+}
+
+.doughnut-canvas-box {
+  width: 170px;
+  height: 170px;
+  position: relative;
+}
+
+.doughnut-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.dot-bar {
+  width: 14px;
+  height: 7px;
+  border-radius: 3px;
+}
+
+.bar-pago {
+  background-color: #4ade80;
+}
+
+.bar-atrasado {
+  background-color: #ef4444;
+}
+
+.bar-pendente {
+  background-color: #facc15;
+}
